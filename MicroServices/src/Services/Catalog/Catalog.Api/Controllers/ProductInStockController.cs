@@ -1,11 +1,14 @@
 ﻿using Catalog.Service.EventHandlers.Commands;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
 namespace Catalog.Api.Controllers
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ApiController]
     [Route("stocks")]
     public class ProductInStockController : ControllerBase
@@ -21,7 +24,6 @@ namespace Catalog.Api.Controllers
         }
 
         [HttpPut]
-        [Route("Update")]
         public async Task<IActionResult> UpdateStock(ProductInStockUpdateStockCommand command)
         {
             await _mediator.Publish(command);

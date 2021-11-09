@@ -3,8 +3,8 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:20000",
-      "sslPort": 44346
+      "applicationUrl": "http://localhost:40000",
+      "sslPort": 44313
     }
   },
   "$schema": "http://json.schemastore.org/launchsettings.json",
@@ -17,7 +17,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "Catalog.Api": {
+    "Order.Api": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "swagger",
@@ -25,7 +25,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "dotnetRunMessages": "true",
-      "applicationUrl": "http://localhost:5000"
+      "applicationUrl": "https://localhost:5001;http://localhost:5000"
     }
   }
 }

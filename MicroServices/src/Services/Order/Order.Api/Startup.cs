@@ -1,5 +1,3 @@
-using Catalog.Persistence.Database;
-using Catalog.Service.Queries;
 using Common.Logging;
 using HealthChecks.UI.Client;
 using MediatR;
@@ -14,10 +12,14 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Order.Persistence.Database;
+using Order.Service.Proxies;
+using Order.Service.Proxies.Catalog;
+using Order.Service.Queries;
 using System.Reflection;
 using System.Text;
 
-namespace Catalog.Api
+namespace Order.Api
 {
     public class Startup
     {
@@ -34,28 +36,33 @@ namespace Catalog.Api
             // HttpContextAccessor
             services.AddHttpContextAccessor();
 
-            // DataBase Cofiguration
-            services.AddDbContext<ApplicationDbContext>(options => 
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"))
-            );
+            // Database Configuration
+            services.AddDbContext<OrderDbContext>(
+                options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
-            //Healt Cheks
+            // Health Checks
             services.AddHealthChecks()
-                    .AddDbContextCheck<ApplicationDbContext>(typeof(ApplicationDbContext).Name);
-                    
-
+                .AddDbContextCheck<OrderDbContext>(typeof(OrderDbContext).Name);
+            // Health Checks UI
             services.AddHealthChecksUI().AddInMemoryStorage();
 
-            // Commands Service
-            services.AddMediatR(Assembly.Load("Catalog.Service.EventHandlers"));
+            // Api Urls
+            services.Configure<ApiUrls>(
+                options => Configuration.GetSection("ApiUrls").Bind(options));
 
-            // Query Service
-            services.AddTransient<IProductQueryService, ProductQueryService>();
+            // Proxies
+            services.AddHttpClient<ICatalogProxy, CatalogProxy>();
+
+            // Command Services
+            services.AddMediatR(Assembly.Load("Order.Service.EventHandlers"));
+
+            // Query Services
+            services.AddTransient<IOrderQueryService, OrderQueryService>();
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Catalog.Api", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Order.Api", Version = "v1" });
             });
 
             // Add Authentication
@@ -84,11 +91,11 @@ namespace Catalog.Api
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Catalog.Api v1"));
+                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Order.Api v1"));
             }
             else
             {
-                
+
             }
 
             loggerFactory.AddSyslog(
@@ -102,7 +109,7 @@ namespace Catalog.Api
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-
+                
                 endpoints.MapHealthChecksUI();
 
                 endpoints.MapHealthChecks("/health", new HealthCheckOptions()

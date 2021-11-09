@@ -1,6 +1,5 @@
-using Catalog.Persistence.Database;
-using Catalog.Service.Queries;
-using Common.Logging;
+using Customer.Persistence.Database;
+using Customer.Service.Queries;
 using HealthChecks.UI.Client;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -11,13 +10,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
 
-namespace Catalog.Api
+namespace Customer.Api
 {
     public class Startup
     {
@@ -34,28 +32,26 @@ namespace Catalog.Api
             // HttpContextAccessor
             services.AddHttpContextAccessor();
 
-            // DataBase Cofiguration
-            services.AddDbContext<ApplicationDbContext>(options => 
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"))
-            );
+            //Database Cofiguration
+            services.AddDbContext<CustomerDbContext>(
+                options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
-            //Healt Cheks
+            //Health Checks
             services.AddHealthChecks()
-                    .AddDbContextCheck<ApplicationDbContext>(typeof(ApplicationDbContext).Name);
-                    
+                .AddDbContextCheck<CustomerDbContext>(typeof(CustomerDbContext).Name);
 
             services.AddHealthChecksUI().AddInMemoryStorage();
 
             // Commands Service
-            services.AddMediatR(Assembly.Load("Catalog.Service.EventHandlers"));
+            services.AddMediatR(Assembly.Load("Customer.Service.EventHandlers"));
 
             // Query Service
-            services.AddTransient<IProductQueryService, ProductQueryService>();
+            services.AddTransient<IClientQueryService, ClientQueryService>();
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Catalog.Api", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Customer.Api", Version = "v1" });
             });
 
             // Add Authentication
@@ -78,26 +74,19 @@ namespace Catalog.Api
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Catalog.Api v1"));
+                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Customer.Api v1"));
             }
-            else
-            {
-                
-            }
-
-            loggerFactory.AddSyslog(
-                    Configuration.GetValue<string>("Papertrail:host"),
-                    Configuration.GetValue<int>("Papertrail:port"));
 
             app.UseRouting();
 
             app.UseAuthorization();
+            app.UseAuthentication();
 
             app.UseEndpoints(endpoints =>
             {
