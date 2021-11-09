@@ -14,7 +14,7 @@ namespace Catalog.Service.Queries
     public interface IProductQueryService
     {
         Task<DataCollection<ProductDto>> GetAllAsync(int page, int take, IEnumerable<int> products = null);
-        Task<ProductDto> GetAsync(int id);
+        Task<ProductDto> GetByIdAsync(int id);
     }
 
     public class ProductQueryService : IProductQueryService
@@ -36,7 +36,7 @@ namespace Catalog.Service.Queries
             return collection.MapTo<DataCollection<ProductDto>>();
         }
 
-        public async Task<ProductDto> GetAsync(int id)
+        public async Task<ProductDto> GetByIdAsync(int id)
         {
             return (await _applicationDbContext.Products.SingleAsync(x => x.ProductId == id)).MapTo<ProductDto>();
         }

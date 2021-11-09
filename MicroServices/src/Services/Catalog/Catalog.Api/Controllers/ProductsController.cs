@@ -50,7 +50,7 @@ namespace Catalog.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ProductDto> GetById(int id)
         {
-            return await _productQueryService.GetAsync(id);
+            return await _productQueryService.GetByIdAsync(id);
         }
 
         [HttpPost]
